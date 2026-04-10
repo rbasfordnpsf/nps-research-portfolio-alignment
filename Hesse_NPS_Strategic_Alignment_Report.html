@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Athena Insights — NPS Research Strategic Alignment | Dr. Michael Hesse</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --navy:#003366; --deep:#001F3F; --slate:#1B3A5C;
+  --gold:#C8963E; --green:#22C55E; --red:#EF4444;
+  --yellow:#F59E0B; --purple:#8B5CF6; --blue:#3B82F6;
+  --muted:#7A8FA6; --bg:#F5F7FA; --border:#D4DCE6;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:var(--navy);background:var(--bg);font-size:16px;}
+a{color:var(--blue);text-decoration:none;} a:hover{text-decoration:underline;}
+
+.hero{background:linear-gradient(135deg,var(--deep) 0%,var(--navy) 60%,#002244 100%);padding:5rem 2rem 4rem;text-align:center;}
+.eyebrow{color:var(--gold);font-size:0.8rem;font-weight:700;letter-spacing:6px;margin-bottom:1rem;}
+.hero h1{color:white;font-size:2.6rem;font-weight:800;margin-bottom:0.5rem;line-height:1.2;}
+.hero .sub{color:var(--muted);font-size:1.1rem;margin-bottom:0.3rem;}
+.hero .meta{color:#4B6180;font-size:0.85rem;margin-bottom:1.75rem;}
+.kpis{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;}
+.kpi{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:1.35rem 2rem;min-width:150px;}
+.kpi .n{font-size:2.6rem;font-weight:800;line-height:1;}
+.kpi .l{color:var(--muted);font-size:0.7rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-top:0.35rem;}
+
+.wrap{max-width:1100px;margin:0 auto;padding:2.5rem 2rem;}
+.sh{font-size:1.6rem;font-weight:800;margin-bottom:0.4rem;}
+.sh::after{content:'';display:block;width:50px;height:3px;background:var(--gold);margin-top:0.35rem;border-radius:2px;}
+.sd{color:#4A6178;font-size:0.95rem;margin-bottom:1.4rem;max-width:860px;line-height:1.7;}
+
+.hcard{border-radius:11px;padding:1.35rem;border-left:4px solid;margin-bottom:0.9rem;}
+.hcard .tag{font-size:0.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:0.3rem;}
+.hcard h3{font-size:1.1rem;font-weight:800;color:white;margin-bottom:0.5rem;}
+.hcard p{font-size:1.05rem;line-height:1.7;color:#94A3B8;}
+.htags{display:flex;gap:0.35rem;flex-wrap:wrap;margin-top:0.6rem;}
+.htag{padding:0.12rem 0.5rem;border-radius:9px;font-size:0.65rem;font-weight:700;}
+
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.75rem;}
+.cbox{background:white;border-radius:11px;border:1px solid var(--border);padding:1.35rem;}
+.cbox h3{font-size:0.85rem;font-weight:700;margin-bottom:0.85rem;color:var(--navy);}
+canvas{max-height:280px;}
+
+.matrix{width:100%;border-collapse:collapse;font-size:0.85rem;margin-bottom:1.5rem;}
+.matrix th{background:var(--slate);color:white;padding:0.5rem 0.7rem;text-align:left;font-size:0.67rem;text-transform:uppercase;letter-spacing:0.5px;}
+.matrix td{padding:0.7rem 0.85rem;border-bottom:1px solid var(--border);}
+.matrix tr:hover td{background:#F0F4F8;}
+.ps{background:#D1FAE5;color:#065F46;padding:0.12rem 0.55rem;border-radius:10px;font-size:0.65rem;font-weight:700;}
+.pm{background:#FEF3C7;color:#92400E;padding:0.12rem 0.55rem;border-radius:10px;font-size:0.65rem;font-weight:700;}
+.pg{background:#FEE2E2;color:#991B1B;padding:0.12rem 0.55rem;border-radius:10px;font-size:0.65rem;font-weight:700;}
+
+.pcards{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;}
+.pcard{background:white;border:1px solid var(--border);border-radius:10px;padding:1.1rem;border-top:3px solid;}
+.pcard .ptype{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:0.3rem;}
+.pcard h4{font-size:0.95rem;font-weight:700;margin-bottom:0.4rem;line-height:1.35;}
+.pcard p{font-size:0.85rem;color:#4A6178;line-height:1.6;}
+
+.gpanel{background:white;border:1px solid var(--border);border-radius:10px;margin-bottom:0.75rem;overflow:hidden;}
+.ghead{display:flex;justify-content:space-between;align-items:center;padding:0.9rem 1.25rem;cursor:pointer;}
+.ghead:hover{background:#F0F4F8;}
+.gbody{display:none;padding:1.1rem 1.25rem;border-top:1px solid var(--border);}
+.gbody.open{display:block;}
+
+.footer{background:var(--deep);color:var(--muted);text-align:center;padding:1.25rem;font-size:0.7rem;}
+.footer .cl{color:white;font-weight:700;letter-spacing:2px;font-size:0.75rem;}
+
+@media(max-width:800px){.charts{grid-template-columns:1fr;}.pcards{grid-template-columns:1fr;}.kpis{gap:0.6rem;}}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="eyebrow">A T H E N A&nbsp;&nbsp;I N S I G H T S</div>
+  <h1>NPS Research Portfolio<br>Naval Strategic Alignment Report</h1>
+  <div class="sub">Prepared for Dr. Michael Hesse, Vice Provost for Research &amp; Innovation</div>
+  <div class="meta">March 2026 &nbsp;&middot;&nbsp; UNCLASSIFIED &nbsp;&middot;&nbsp; NPS Foundation</div>
+  <div class="kpis">
+    <div class="kpi"><div class="n" style="color:var(--gold);">3,859</div><div class="l">Projects Analyzed</div></div>
+    <div class="kpi"><div class="n" style="color:var(--green);">19</div><div class="l">Strong Coverage</div></div>
+    <div class="kpi"><div class="n" style="color:var(--yellow);">7</div><div class="l">Moderate Coverage</div></div>
+    <div class="kpi"><div class="n" style="color:var(--red);">1</div><div class="l">Critical Gaps</div></div>
+    <div class="kpi"><div class="n" style="color:var(--blue);">634</div><div class="l">Drone / Autonomous</div></div>
+    <div class="kpi"><div class="n" style="color:var(--purple);">181</div><div class="l">Contested Logistics</div></div>
+  </div>
+</section>
+
+<!-- FINDINGS -->
+<section style="background:var(--navy);padding:2.5rem 2rem;">
+<div style="max-width:1100px;margin:0 auto;">
+  <h2 class="sh" style="color:white;">Key Findings</h2>
+  <p class="sd" style="color:var(--muted);">What 3,859 projects across the full NPS research portfolio reveal about strategic alignment.</p>
+
+  <div class="hcard" style="background:#0d2e0d;border-color:var(--green);">
+    <div class="tag" style="color:var(--green);">Finding 01 — Institutional Strength</div>
+    <h3>AI, Autonomy &amp; Unmanned Systems Dominate the Portfolio</h3>
+    <p>634 projects span UAS, USV, autonomous teaming, AI-enabled targeting, and human-machine collaboration. This is NPS&rsquo;s deepest and most consistent research investment, with 85 currently active and 57 fleet-requested.</p>
+    <div class="htags">
+      <span class="htag" style="background:rgba(34,197,94,0.15);color:var(--green);">634 Projects</span>
+      <span class="htag" style="background:rgba(34,197,94,0.15);color:var(--green);">85 Active</span>
+      <span class="htag" style="background:rgba(34,197,94,0.15);color:var(--green);">57 Fleet-Requested</span>
+    </div>
+  </div>
+
+  <div class="hcard" style="background:#2a1f00;border-color:var(--gold);">
+    <div class="tag" style="color:var(--gold);">Finding 02 — Demand Signal</div>
+    <h3>Contested Logistics: Pipeline Growing, Active Research Thin</h3>
+    <p>181 projects address logistics under adversarial conditions. 16 are fleet-requested and 14 proposed &mdash; but only 15 are currently active.</p>
+    <div class="htags">
+      <span class="htag" style="background:rgba(200,150,62,0.15);color:var(--gold);">16 Fleet-Requested</span>
+      <span class="htag" style="background:rgba(200,150,62,0.15);color:var(--gold);">14 Proposed</span>
+      <span class="htag" style="background:rgba(200,150,62,0.15);color:var(--gold);">Only 15 Active</span>
+    </div>
+  </div>
+
+  <div class="hcard" style="background:#2a0a0a;border-color:var(--red);">
+    <div class="tag" style="color:var(--red);">Finding 03 — Critical Gap</div>
+    <h3>Counter-UAS Is the Only True Gap in the Portfolio</h3>
+    <p>Across 3,859 projects mapped against 27 strategic themes from three policy documents, dedicated counter-UAS research has just 9 projects (0.2%). Every other theme scores Moderate or Strong. This is the single structural blind spot in an otherwise well-aligned portfolio.</p>
+    <div class="htags">
+      <span class="htag" style="background:rgba(239,68,68,0.15);color:var(--red);">C-UAS: 9 Projects</span>
+      <span class="htag" style="background:rgba(239,68,68,0.15);color:var(--red);">0.2% of Portfolio</span>
+      <span class="htag" style="background:rgba(239,68,68,0.15);color:var(--red);">Only Critical Gap</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ALIGNMENT -->
+<section class="wrap">
+  <h2 class="sh">Strategic Alignment</h2>
+  <p class="sd">Full portfolio mapped against the 2026 National Defense Strategy, CNO Fighting Instructions, and America&rsquo;s AI Action Plan. Coverage scored from 3,859 unique NPS research projects.</p>
+
+  <div class="charts">
+    <div class="cbox"><h3>National Defense Strategy (NDS) &mdash; Project Count by Theme</h3><canvas id="ndsChart"></canvas></div>
+    <div class="cbox"><h3>CNO Fighting Instructions &mdash; Project Count by Theme</h3><canvas id="cnoChart"></canvas></div>
+  </div>
+  <div class="charts">
+    <div class="cbox"><h3>America&rsquo;s AI Action Plan &mdash; Project Count by Theme</h3><canvas id="aiChart"></canvas></div>
+    <div class="cbox"><h3>Spotlight: Research Status Breakdown</h3><canvas id="typeChart"></canvas></div>
+  </div>
+
+  <table class="matrix">
+    <thead><tr><th>Document</th><th>Theme</th><th>Rating</th><th>Projects</th><th>Coverage</th></tr></thead>
+    <tbody><tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Allied Burden-Sharing</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">862</td><td style="color:#475569;font-size:0.77rem;">22.3% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">AI / Autonomy</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">628</td><td style="color:#475569;font-size:0.77rem;">16.3% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Cyber & Space</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">472</td><td style="color:#475569;font-size:0.77rem;">12.2% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Deter China (Indo-Pacific)</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">324</td><td style="color:#475569;font-size:0.77rem;">8.4% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Defense Industrial Base</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">239</td><td style="color:#475569;font-size:0.77rem;">6.2% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Counter Russia</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">226</td><td style="color:#475569;font-size:0.77rem;">5.9% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Resilient Logistics</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">181</td><td style="color:#475569;font-size:0.77rem;">4.7% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Integrated Deterrence</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">74</td><td style="color:#475569;font-size:0.77rem;">1.9% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Nuclear Modernization</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">62</td><td style="color:#475569;font-size:0.77rem;">1.6% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Counter Iran</td><td><span class="pm">Moderate</span></td><td style="font-weight:700;text-align:center;">25</td><td style="color:#475569;font-size:0.77rem;">0.6% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">2026 National Defense Strategy</td><td style="font-weight:600;">Counter DPRK</td><td><span class="pm">Moderate</span></td><td style="font-weight:700;text-align:center;">23</td><td style="color:#475569;font-size:0.77rem;">0.6% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">CNO Fighting Instructions</td><td style="font-weight:600;">Warfighter Readiness</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">631</td><td style="color:#475569;font-size:0.77rem;">16.4% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">CNO Fighting Instructions</td><td style="font-weight:600;">AI-Enabled Decision Making</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">389</td><td style="color:#475569;font-size:0.77rem;">10.1% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">CNO Fighting Instructions</td><td style="font-weight:600;">Autonomous / Unmanned Systems</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">332</td><td style="color:#475569;font-size:0.77rem;">8.6% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">CNO Fighting Instructions</td><td style="font-weight:600;">Integrated All-Domain</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">148</td><td style="color:#475569;font-size:0.77rem;">3.8% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">CNO Fighting Instructions</td><td style="font-weight:600;">EMS Operations</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">94</td><td style="color:#475569;font-size:0.77rem;">2.4% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">CNO Fighting Instructions</td><td style="font-weight:600;">Distributed Maritime Ops</td><td><span class="pm">Moderate</span></td><td style="font-weight:700;text-align:center;">21</td><td style="color:#475569;font-size:0.77rem;">0.5% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">CNO Fighting Instructions</td><td style="font-weight:600;">Contested Logistics</td><td><span class="pm">Moderate</span></td><td style="font-weight:700;text-align:center;">19</td><td style="color:#475569;font-size:0.77rem;">0.5% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">CNO Fighting Instructions</td><td style="font-weight:600;">Counter-UAS</td><td><span class="pg">Gap</span></td><td style="font-weight:700;text-align:center;">9</td><td style="color:#475569;font-size:0.77rem;">0.2% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">America's AI Action Plan</td><td style="font-weight:600;">Empower American Workers</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">435</td><td style="color:#475569;font-size:0.77rem;">11.3% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">America's AI Action Plan</td><td style="font-weight:600;">Accelerate AI Innovation</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">320</td><td style="color:#475569;font-size:0.77rem;">8.3% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">America's AI Action Plan</td><td style="font-weight:600;">Next-Gen Manufacturing</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">136</td><td style="color:#475569;font-size:0.77rem;">3.5% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">America's AI Action Plan</td><td style="font-weight:600;">Build AI Infrastructure</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">119</td><td style="color:#475569;font-size:0.77rem;">3.1% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">America's AI Action Plan</td><td style="font-weight:600;">Biosecurity</td><td><span class="ps">Strong</span></td><td style="font-weight:700;text-align:center;">51</td><td style="color:#475569;font-size:0.77rem;">1.3% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">America's AI Action Plan</td><td style="font-weight:600;">Combat Synthetic Media</td><td><span class="pm">Moderate</span></td><td style="font-weight:700;text-align:center;">31</td><td style="color:#475569;font-size:0.77rem;">0.8% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">America's AI Action Plan</td><td style="font-weight:600;">Trustworthy AI</td><td><span class="pm">Moderate</span></td><td style="font-weight:700;text-align:center;">30</td><td style="color:#475569;font-size:0.77rem;">0.8% of portfolio</td></tr>
+<tr><td style="font-size:0.72rem;color:#64748B;">America's AI Action Plan</td><td style="font-weight:600;">Protect AI Innovations</td><td><span class="pm">Moderate</span></td><td style="font-weight:700;text-align:center;">12</td><td style="color:#475569;font-size:0.77rem;">0.3% of portfolio</td></tr>
+</tbody>
+  </table>
+</section>
+
+<!-- CONTESTED LOGISTICS -->
+<section style="background:#EDF2F7;padding:2.5rem 2rem;">
+<div style="max-width:1100px;margin:0 auto;">
+  <h2 class="sh">Contested Logistics Spotlight</h2>
+  <p class="sd">Selected highlights from 181 projects addressing logistics under adversarial conditions, supply chain resilience, sea basing, and forward sustainment.</p>
+  <div class="pcards"><div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Developing a Qualitative Supply Chain Risk Management Framework for Defense Acquisition: Insights Fr</h4>
+      <p>The Department of Defense (DoD) operates within complex, multi-tiered supply chains that often lack visibility into sub-tier suppliers, exposing acquisition programs to vulnerabili...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Large Scale Sustainment Operations (Lsso) in Wartime Transportation: Disruptive Innovation in Confli</h4>
+      <p>The United States and the West continue supporting Ukraine in its defense against Russia through various forms of aid. As early as 2014, Russia objected to pro-Western inclinations...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Logistics Support System Development for Data Fusion and Decision Support in U.S. Army Ground Combat</h4>
+      <p>This project aims to investigate the logistics support framework necessary for integrating data fusion and decision support systems (DSSs) into Ground Combat Vehicles (GCVs). Moder...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Implementing Commercial Warehouse Automation Processes and Technology in the Navy Exchange Command W</h4>
+      <p>This project investigates the potential for implementing commercial warehouse automation technologies at the Navy Exchange Command (NEXCOM) West Coast Distribution Center (WCDC). C...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Forecasted Sustainment Modeling of Expeditionary Deployed Additive Manufacturing Equipment within th</h4>
+      <p>Additive manufacturing is an emerging technology in the Department of Defense requiring not only careful technical considerations but also a robust logistics support system. This s...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Sediment Morphology InterAction with Rock Outcroppings</h4>
+      <p>Globally, most beaches are rocky with sparse sediment, yet very little has been studied or understood of the morphodynamic processes. Contrarily, sandy beaches have been well-studi...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Predicting Obsolescence Patterns and Enhancing Sustainment Strategies in DMSMS for Critical Systems</h4>
+      <p>This thesis focuses on addressing Diminishing Manufacturing Sources and Material Shortages (DMSMS) within National Item Identification Numbers (NIINs) essential to critical systems...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Spare Parts Acquisition in the SRI Lanka Navy: An Analysis of Root Causes in Supply Chain Bottleneck</h4>
+      <p>The Sri Lanka Navy (SLN), as the first line of defense for the island nation, plays a vital role in safeguarding national security and achieving strategic objectives. Surrounded by...</p></div>
+</div>
+  <p style="font-size:0.78rem;color:var(--muted);text-align:right;">181 total projects &nbsp;&middot;&nbsp; Full NPS portfolio &nbsp;&middot;&nbsp; 2-year window</p>
+</div>
+</section>
+
+<!-- DRONE & AUTONOMOUS -->
+<section class="wrap">
+  <h2 class="sh">Drone &amp; Autonomous Systems Spotlight</h2>
+  <p class="sd">Selected highlights from 634 projects spanning unmanned systems, AI-enabled operations, autonomous targeting, and human-machine teaming.</p>
+  <div class="pcards"><div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Refine AI Agents through Continuous Model Distillation with Data Flywheels</h4>
+      <p>Deploying AI agents at scale introduces significant challenges, including high compute costs and latency bottlenecks—especially in performance-critical environments. Balancing mode...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Small UAS Production by the Millions</h4>
+      <p>Abstract not available.</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>The AI Edge in IE Baseline Analysis</h4>
+      <p>How can we use AI to analyze publicly available information (PAI) to create a baseline of the information environment? Additionally, how can sentiment analysis and spatiotemporal m...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>How Can Deep Learning Models, Combined with Public AIS Data, Be Utilized to Identify Patterns and Be</h4>
+      <p>This thesis explores the utilization of deep learning models combined with public Automated Identification System (AIS) data to identify vessel patterns and behaviors that may pose...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Collaborate on 5G and beyond cellular technology applications for enhanced and resilient tactical co</h4>
+      <p>Collaborate on 5G and beyond cellular technology applications for enhanced and resilient tactical communications.  Explore IoT applications in areas like autonomous vehicles and dr...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Effective Information Set Representations for Military Simulation AI</h4>
+      <p>This thesis addresses the challenge of designing effective artificial intelligence systems for military simulations operating under partial observability conditions. In real-world ...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>Unmanned Systems in Irregular Warfare: ARSOF's Role in Enhancing Sovereignty and Strategic Deterrenc</h4>
+      <p>Special Forces, Civil Affairs, and Psychological Operations (Army Special Operations Forces, or ARSOF) are key actors in the execution of an Irregular Warfare campaign, and as such...</p></div>
+<div class="pcard" style="border-top-color:#3B82F6;">
+      <div class="ptype" style="color:#3B82F6;">Active</div>
+      <h4>OTH (Over-the-Horizon) Strategy in Afghanistan</h4>
+      <p>Since the final U.S. withdrawal from Afghanistan in August 2021, Washington has relied exclusively on over-the-horizon (OTH) counterterrorism that combines armed uncrewed aerial ve...</p></div>
+</div>
+  <p style="font-size:0.78rem;color:var(--muted);text-align:right;">634 total projects &nbsp;&middot;&nbsp; Full NPS portfolio &nbsp;&middot;&nbsp; 2-year window</p>
+</section>
+
+<!-- GAP ANALYSIS -->
+<section style="background:#EDF2F7;padding:2.5rem 2rem;">
+<div style="max-width:1100px;margin:0 auto;">
+  <h2 class="sh">Gap Analysis</h2>
+  <p class="sd">Themes where NPS research coverage is thinnest relative to strategic demand. Project counts from the full 3,859-project portfolio.</p>
+
+  <div class="gpanel">
+    <div class="ghead" onclick="toggleG(0)">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="background:#EF444422;color:#EF4444;padding:0.18rem 0.6rem;border-radius:10px;font-size:0.63rem;font-weight:700;">CRITICAL GAP</span>
+        <strong style="font-size:1.05rem;">Dedicated Counter-UAS (C-UAS)</strong>
+      </div>
+      <span id="gt0" style="color:var(--muted);font-size:1.1rem;">+</span>
+    </div>
+    <div class="gbody" id="gb0">
+      <p style="font-size:0.95rem;color:var(--muted);">9 projects &nbsp;&middot;&nbsp; 0.2% of portfolio &nbsp;&middot;&nbsp; vs. 634 offensive drone/autonomous projects</p>
+    </div>
+  </div>
+
+  <div class="gpanel">
+    <div class="ghead" onclick="toggleG(1)">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="background:#F59E0B22;color:#F59E0B;padding:0.18rem 0.6rem;border-radius:10px;font-size:0.63rem;font-weight:700;">MODERATE</span>
+        <strong style="font-size:1.05rem;">Distributed Maritime Ops</strong>
+      </div>
+      <span id="gt1" style="color:var(--muted);font-size:1.1rem;">+</span>
+    </div>
+    <div class="gbody" id="gb1">
+      <p style="font-size:0.95rem;color:var(--muted);">21 projects &nbsp;&middot;&nbsp; 0.54% of portfolio &nbsp;&middot;&nbsp; CNO Fighting Instructions</p>
+    </div>
+  </div>
+  <div class="gpanel">
+    <div class="ghead" onclick="toggleG(2)">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="background:#F59E0B22;color:#F59E0B;padding:0.18rem 0.6rem;border-radius:10px;font-size:0.63rem;font-weight:700;">MODERATE</span>
+        <strong style="font-size:1.05rem;">Contested Logistics</strong>
+      </div>
+      <span id="gt2" style="color:var(--muted);font-size:1.1rem;">+</span>
+    </div>
+    <div class="gbody" id="gb2">
+      <p style="font-size:0.95rem;color:var(--muted);">19 projects &nbsp;&middot;&nbsp; 0.49% of portfolio &nbsp;&middot;&nbsp; CNO Fighting Instructions</p>
+    </div>
+  </div>
+  <div class="gpanel">
+    <div class="ghead" onclick="toggleG(3)">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="background:#F59E0B22;color:#F59E0B;padding:0.18rem 0.6rem;border-radius:10px;font-size:0.63rem;font-weight:700;">MODERATE</span>
+        <strong style="font-size:1.05rem;">Protect AI Innovations</strong>
+      </div>
+      <span id="gt3" style="color:var(--muted);font-size:1.1rem;">+</span>
+    </div>
+    <div class="gbody" id="gb3">
+      <p style="font-size:0.95rem;color:var(--muted);">12 projects &nbsp;&middot;&nbsp; 0.31% of portfolio &nbsp;&middot;&nbsp; America's AI Action Plan</p>
+    </div>
+  </div>
+  <div class="gpanel">
+    <div class="ghead" onclick="toggleG(4)">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="background:#F59E0B22;color:#F59E0B;padding:0.18rem 0.6rem;border-radius:10px;font-size:0.63rem;font-weight:700;">MODERATE</span>
+        <strong style="font-size:1.05rem;">Counter Iran</strong>
+      </div>
+      <span id="gt4" style="color:var(--muted);font-size:1.1rem;">+</span>
+    </div>
+    <div class="gbody" id="gb4">
+      <p style="font-size:0.95rem;color:var(--muted);">25 projects &nbsp;&middot;&nbsp; 0.65% of portfolio &nbsp;&middot;&nbsp; 2026 NDS</p>
+    </div>
+  </div>
+  <div class="gpanel">
+    <div class="ghead" onclick="toggleG(5)">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="background:#F59E0B22;color:#F59E0B;padding:0.18rem 0.6rem;border-radius:10px;font-size:0.63rem;font-weight:700;">MODERATE</span>
+        <strong style="font-size:1.05rem;">Counter DPRK</strong>
+      </div>
+      <span id="gt5" style="color:var(--muted);font-size:1.1rem;">+</span>
+    </div>
+    <div class="gbody" id="gb5">
+      <p style="font-size:0.95rem;color:var(--muted);">23 projects &nbsp;&middot;&nbsp; 0.6% of portfolio &nbsp;&middot;&nbsp; 2026 NDS</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<footer class="footer">
+  <div class="cl">UNCLASSIFIED</div>
+  <div style="margin-top:0.4rem;">Athena Insights &middot; NPS Foundation &middot; March 2026 &middot; athena4partners.org</div>
+</footer>
+
+<script>
+function toggleG(i) {
+  const b=document.getElementById('gb'+i), t=document.getElementById('gt'+i);
+  b.classList.toggle('open');
+  t.textContent=b.classList.contains('open')?'\u2212':'+';
+}
+
+const barOpts = {
+  indexAxis:'y', responsive:true,
+  plugins:{legend:{display:false}},
+  scales:{
+    x:{grid:{color:'#E8ECF0'},ticks:{font:{size:9}},beginAtZero:true},
+    y:{grid:{display:false},ticks:{font:{size:9}}}
+  }
+};
+
+new Chart(document.getElementById('ndsChart'),{type:'bar',data:{
+  labels:["Allied Burden-Sharing", "AI / Autonomy", "Cyber & Space", "Deter China (Indo-Pacific)", "Defense Industrial Base", "Counter Russia", "Resilient Logistics", "Integrated Deterrence", "Nuclear Modernization", "Counter Iran", "Counter DPRK"],
+  datasets:[{label:'Projects',data:[862, 628, 472, 324, 239, 226, 181, 74, 62, 25, 23],
+    backgroundColor:["#22C55E", "#22C55E", "#22C55E", "#22C55E", "#22C55E", "#22C55E", "#22C55E", "#22C55E", "#22C55E", "#F59E0B", "#F59E0B"],borderRadius:4}]
+},options:barOpts});
+
+new Chart(document.getElementById('cnoChart'),{type:'bar',data:{
+  labels:["Warfighter Readiness", "AI-Enabled Decision Making", "Autonomous / Unmanned Systems", "Integrated All-Domain", "EMS Operations", "Distributed Maritime Ops", "Contested Logistics", "Counter-UAS"],
+  datasets:[{label:'Projects',data:[631, 389, 332, 148, 94, 21, 19, 9],
+    backgroundColor:["#22C55E", "#22C55E", "#22C55E", "#22C55E", "#22C55E", "#F59E0B", "#F59E0B", "#EF4444"],borderRadius:4}]
+},options:barOpts});
+
+new Chart(document.getElementById('aiChart'),{type:'bar',data:{
+  labels:["Empower American Workers", "Accelerate AI Innovation", "Next-Gen Manufacturing", "Build AI Infrastructure", "Biosecurity", "Combat Synthetic Media", "Trustworthy AI", "Protect AI Innovations"],
+  datasets:[{label:'Projects',data:[435, 320, 136, 119, 51, 31, 30, 12],
+    backgroundColor:["#22C55E", "#22C55E", "#22C55E", "#22C55E", "#22C55E", "#F59E0B", "#F59E0B", "#F59E0B"],borderRadius:4}]
+},options:barOpts});
+
+new Chart(document.getElementById('typeChart'),{type:'bar',data:{
+  labels:['Contested Logistics (181)','Drone & Autonomous (634)'],
+  datasets:[
+    {label:'Completed',data:[136,429],backgroundColor:'#22C55E',borderRadius:4},
+    {label:'Active',data:[15,85],backgroundColor:'#3B82F6',borderRadius:4},
+    {label:'Requested',data:[16,57],backgroundColor:'#F59E0B',borderRadius:4},
+    {label:'Proposed',data:[14,56],backgroundColor:'#8B5CF6',borderRadius:4}
+  ]},options:{responsive:true,
+    plugins:{legend:{position:'bottom',labels:{font:{size:10}}}},
+    scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9}}},y:{stacked:true,grid:{color:'#E8ECF0'},ticks:{font:{size:9}}}}
+  }});
+</script>
+</body>
+</html>
